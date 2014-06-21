@@ -7,7 +7,7 @@ let string_of_directive_argument = function
     | Parsetree.Pdir_ident x -> String.concat " " (Longident.flatten x)
     | Parsetree.Pdir_bool b -> string_of_bool b
 
-let coq_expression_of_caml_expression = function (pattern, {Parsetree.pexp_desc=expression; Parsetree.pexp_loc=loc}) ->
+let coq_expression_of_caml_expression (pattern, {Parsetree.pexp_desc=expression; Parsetree.pexp_loc=loc}) =
     match (pattern, expression) with
     | (_, Parsetree.Pexp_ident _) -> Coqtree.Comment "ident"
     | (_, Parsetree.Pexp_constant _) -> failwith "constant not implemented."
@@ -43,7 +43,7 @@ let coq_expression_of_caml_expression = function (pattern, {Parsetree.pexp_desc=
     | (_, Parsetree.Pexp_pack _) -> failwith "pack not implemented."
     | (_, Parsetree.Pexp_open _) -> failwith "open not implemented."
 
-let coq_structure_item_of_caml_structure_item = function {Parsetree.pstr_desc=desc; Parsetree.pstr_loc=loc} ->
+let coq_structure_item_of_caml_structure_item {Parsetree.pstr_desc=desc; Parsetree.pstr_loc=loc} =
     match desc with
     | Parsetree.Pstr_eval _ -> failwith "eval not implemented."
     | Parsetree.Pstr_value (rec_flag, statements) ->
