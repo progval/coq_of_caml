@@ -1,0 +1,15 @@
+
+*This is currently under development*
+
+Converter of basic Caml code into a Coq program.
+
+
+# How to compile?
+
+We use OCaml's parser for parsing programs. For that, you first have to
+download it. Then you can compile.
+
+For that, only two commands are needed:
+
+    ./get_parser.sh
+    make
