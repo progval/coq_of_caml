@@ -11,5 +11,8 @@ all: main.byte
 main.byte:
 	$(CAMLBUILD) $(INCLUDES) main.byte
 
+tests:
+	./tests/run_tests.py
 
-.PHONY: all main.byte
+
+.PHONY: all main.byte tests

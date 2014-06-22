@@ -7,7 +7,8 @@ let rec string_of_type : Coqtree.type_ -> string = function
 
 let string_of_inductive_constructor (Coqtree.InductiveConstructor (name, types)) : string =
     match types with
-    | Coqtree.Types [] -> "| " ^ name
+    | Coqtree.Types []
+    | Coqtree.Types [_] -> "| " ^ name
     | Coqtree.Types l -> String.concat " " ["|"; name; ":"; String.concat " -> " (List.map string_of_type l)]
 
 let rec string_of_structure_item_list : Coqtree.structure_item list -> string = function

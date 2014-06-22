@@ -54,7 +54,8 @@ let rec coq_type_of_caml_type_ident : Longident.t -> Coqtree.type_ = function
         coq_type_of_caml_type_ident t2
     )
 
-let rec coq_type_of_caml_type { Parsetree.ptyp_desc=desc; _ } : Coqtree.type_ =
+
+and coq_type_of_caml_type { Parsetree.ptyp_desc=desc; _ } : Coqtree.type_ =
     match desc with
     | Parsetree.Ptyp_any -> failwith "any not implemented."
     | Parsetree.Ptyp_var s -> Coqtree.SimpleType s
@@ -75,8 +76,9 @@ let rec coq_type_of_caml_type { Parsetree.ptyp_desc=desc; _ } : Coqtree.type_ =
     | Parsetree.Ptyp_poly _ -> failwith "poly not implemented."
     | Parsetree.Ptyp_package _ -> failwith "package not implemented."
 
-let inductive_constructor_of_type_variant (loc, types, foo, bar) : Coqtree.inductive_constructor =
-    Coqtree.InductiveConstructor (loc.Asttypes.txt, Coqtree.Types (List.map coq_type_of_caml_type types))
+let inductive_constructor_of_type_variant variant_name (loc, types, foo, bar) : Coqtree.inductive_constructor =
+    let variant_type = Coqtree.SimpleType variant_name in
+    Coqtree.InductiveConstructor (loc.Asttypes.txt, Coqtree.Types ((List.map coq_type_of_caml_type types) @ [variant_type]))
 
 let coq_structure_item_of_type (loc, decl) : Coqtree.structure_item =
     if (List.length decl.Parsetree.ptype_params) <> 0 then
@@ -86,7 +88,7 @@ let coq_structure_item_of_type (loc, decl) : Coqtree.structure_item =
         | Parsetree.Ptype_abstract -> failwith "abstract not implemented."
         | Parsetree.Ptype_variant x -> Coqtree.Inductive (
             loc.Asttypes.txt,
-            List.map inductive_constructor_of_type_variant x
+            List.map (inductive_constructor_of_type_variant loc.Asttypes.txt) x
         )
         | Parsetree.Ptype_record _ -> failwith "record not implemented."
     )
