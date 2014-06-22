@@ -43,13 +43,39 @@ let coq_expression_of_caml_expression (pattern, {Parsetree.pexp_desc=expression;
     | (_, Parsetree.Pexp_pack _) -> failwith "pack not implemented."
     | (_, Parsetree.Pexp_open _) -> failwith "open not implemented."
 
-let coq_type_of_caml_type { Parsetree.ptyp_desc=desc; _ } : Coqtree.type_ =
+let rec coq_type_of_caml_type_ident : Longident.t -> Coqtree.type_ = function
+    | Longident.Lident s -> Coqtree.SimpleType s
+    | Longident.Ldot (t, s1) -> (match (coq_type_of_caml_type_ident t) with
+        | Coqtree.SimpleType s2 -> Coqtree.SimpleType (String.concat "." [s2; s1])
+        | _ -> failwith "dot not implemented for other types than SimpleType."
+    )
+    | Longident.Lapply (t1, t2) -> Coqtree.Abstraction (
+        coq_type_of_caml_type_ident t1,
+        coq_type_of_caml_type_ident t2
+    )
+
+let rec abstraction_builder x y =
+    match y with
+    | Coqtree.NullType -> coq_type_of_caml_type x
+    | _ -> Coqtree.Abstraction (coq_type_of_caml_type x, y)
+
+and coq_type_of_caml_type { Parsetree.ptyp_desc=desc; _ } : Coqtree.type_ =
     match desc with
     | Parsetree.Ptyp_any -> failwith "any not implemented."
     | Parsetree.Ptyp_var s -> Coqtree.SimpleType s
     | Parsetree.Ptyp_arrow _ -> failwith "arrow not implemented."
-    | Parsetree.Ptyp_tuple _ -> failwith "tuple not implemented."
-    | Parsetree.Ptyp_constr _ -> failwith "constr not implemented."
+    | Parsetree.Ptyp_tuple [] -> Coqtree.NullType
+    | Parsetree.Ptyp_tuple [hd] -> coq_type_of_caml_type hd
+    | Parsetree.Ptyp_tuple l -> (match (List.rev l) with
+            (* We make it in reverse order because we want (foo * bar * baz) to become
+             * foo -> bar -> bar, and neither (foo -> bar) -> baz or baz -> bar -> foo *)
+            | (hd :: tl) -> List.fold_left (fun x y -> Coqtree.Abstraction (coq_type_of_caml_type y, x)) (coq_type_of_caml_type hd) tl
+            | _ -> failwith "logic error"
+    )
+    (*
+    | Parsetree.Ptyp_tuple l ->
+            List.fold_right abstraction_builder l Coqtree.NullType *)
+    | Parsetree.Ptyp_constr (loc, _) -> coq_type_of_caml_type_ident loc.Asttypes.txt
     | Parsetree.Ptyp_object _ -> failwith "object not implemented."
     | Parsetree.Ptyp_class _ -> failwith "class not implemented."
     | Parsetree.Ptyp_alias _ -> failwith "alias not implemented."

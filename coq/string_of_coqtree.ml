@@ -1,12 +1,14 @@
 let rec string_of_type : Coqtree.type_ -> string = function
+    | Coqtree.NullType -> "(nulltype)"
     | Coqtree.SimpleType s -> s
     | Coqtree.Product (t1, t2) -> String.concat "" ["("; string_of_type t1; ", "; string_of_type t2; ")"]
-    | Coqtree.Abstraction (t1, t2) -> String.concat "" ["("; string_of_type t1; ") -> ("; string_of_type t2; ")"]
+    | Coqtree.Abstraction (Coqtree.SimpleType t1, t2) -> String.concat " -> " [t1; string_of_type t2]
+    | Coqtree.Abstraction (t1, t2) -> String.concat "" ["("; string_of_type t1; ") -> "; string_of_type t2]
 
 let string_of_inductive_constructor (Coqtree.InductiveConstructor (name, types)) : string =
     match types with
     | Coqtree.Types [] -> "| " ^ name
-    | Coqtree.Types l -> String.concat " " ["|"; name; "=>"; String.concat "(wtf)" (List.map string_of_type l)]
+    | Coqtree.Types l -> String.concat " " ["|"; name; ":"; String.concat " -> " (List.map string_of_type l)]
 
 let rec string_of_structure_item_list l : string =
     String.concat "(* ** *)" (List.map string_of_structure_item l)

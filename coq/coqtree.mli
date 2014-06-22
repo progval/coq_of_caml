@@ -1,6 +1,7 @@
 type identifier = string
 
 type type_ =
+    | NullType
     | SimpleType of string
     | Product of type_ * type_
     | Abstraction of type_ * type_ (* type1 -> type2 *)
