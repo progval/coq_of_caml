@@ -1,13 +1,13 @@
 (* Convert a Caml directive argument to a human-readable string that will be
  * put in a comment. *)
-let string_of_directive_argument = function
+let string_of_directive_argument : Parsetree.directive_argument -> string = function
     | Parsetree.Pdir_none -> "none"
     | Parsetree.Pdir_string s -> "\"" ^ s ^ "\""
     | Parsetree.Pdir_int i -> string_of_int i
     | Parsetree.Pdir_ident x -> String.concat " " (Longident.flatten x)
     | Parsetree.Pdir_bool b -> string_of_bool b
 
-let coq_expression_of_caml_expression (pattern, {Parsetree.pexp_desc=expression; Parsetree.pexp_loc=loc}) =
+let coq_expression_of_caml_expression (pattern, {Parsetree.pexp_desc=expression; Parsetree.pexp_loc=loc}) : Coqtree.structure_item =
     match (pattern, expression) with
     | (_, Parsetree.Pexp_ident _) -> Coqtree.Comment "ident"
     | (_, Parsetree.Pexp_constant _) -> failwith "constant not implemented."
@@ -43,13 +43,44 @@ let coq_expression_of_caml_expression (pattern, {Parsetree.pexp_desc=expression;
     | (_, Parsetree.Pexp_pack _) -> failwith "pack not implemented."
     | (_, Parsetree.Pexp_open _) -> failwith "open not implemented."
 
-let coq_structure_item_of_caml_structure_item {Parsetree.pstr_desc=desc; Parsetree.pstr_loc=loc} =
+let coq_type_of_caml_type { Parsetree.ptyp_desc=desc; _ } : Coqtree.type_ =
+    match desc with
+    | Parsetree.Ptyp_any -> failwith "any not implemented."
+    | Parsetree.Ptyp_var s -> Coqtree.SimpleType s
+    | Parsetree.Ptyp_arrow _ -> failwith "arrow not implemented."
+    | Parsetree.Ptyp_tuple _ -> failwith "tuple not implemented."
+    | Parsetree.Ptyp_constr _ -> failwith "constr not implemented."
+    | Parsetree.Ptyp_object _ -> failwith "object not implemented."
+    | Parsetree.Ptyp_class _ -> failwith "class not implemented."
+    | Parsetree.Ptyp_alias _ -> failwith "alias not implemented."
+    | Parsetree.Ptyp_variant _ -> failwith "variant not implemented."
+    | Parsetree.Ptyp_poly _ -> failwith "poly not implemented."
+    | Parsetree.Ptyp_package _ -> failwith "package not implemented."
+
+let inductive_constructor_of_type_variant (loc, types, foo, bar) : Coqtree.inductive_constructor =
+    Coqtree.InductiveConstructor (loc.Asttypes.txt, Coqtree.Types (List.map coq_type_of_caml_type types))
+
+let coq_structure_item_of_type (loc, decl) : Coqtree.structure_item =
+    if (List.length decl.Parsetree.ptype_params) <> 0 then
+        failwith "parametered types not supported."
+    else (
+        match decl.Parsetree.ptype_kind with
+        | Parsetree.Ptype_abstract -> failwith "abstract not implemented."
+        | Parsetree.Ptype_variant x -> Coqtree.Inductive (
+            loc.Asttypes.txt,
+            List.map inductive_constructor_of_type_variant x
+        )
+        | Parsetree.Ptype_record _ -> failwith "record not implemented."
+    )
+
+let coq_structure_of_caml_structure_item {Parsetree.pstr_desc=desc; Parsetree.pstr_loc=loc} : Coqtree.structure =
     match desc with
     | Parsetree.Pstr_eval _ -> failwith "eval not implemented."
     | Parsetree.Pstr_value (rec_flag, statements) ->
-            Coqtree.SubStructure (List.map coq_expression_of_caml_expression statements)
+            List.map coq_expression_of_caml_expression statements
     | Parsetree.Pstr_primitive _ -> failwith "primitive not implemented."
-    | Parsetree.Pstr_type _ -> failwith "type not implemented."
+    | Parsetree.Pstr_type l ->
+            List.map coq_structure_item_of_type l
     | Parsetree.Pstr_exception _ -> failwith "exception not implemented."
     | Parsetree.Pstr_exn_rebind _ -> failwith "exn_rebind not implemented."
     | Parsetree.Pstr_module _ -> failwith "module not implemented."
@@ -61,8 +92,8 @@ let coq_structure_item_of_caml_structure_item {Parsetree.pstr_desc=desc; Parsetr
     | Parsetree.Pstr_include _ -> failwith "include not implemented."
 
 
-let coqtree_of_camltree_aux = function
-    | Parsetree.Ptop_def x -> Coqtree.Structure (List.map coq_structure_item_of_caml_structure_item x)
+let coqtree_of_camltree_aux : Parsetree.toplevel_phrase -> Coqtree.toplevel_phrase = function
+    | Parsetree.Ptop_def x -> Coqtree.Structure (List.concat (List.map coq_structure_of_caml_structure_item x))
     | Parsetree.Ptop_dir (name, arg) ->
             Coqtree.Structure [Coqtree.Comment ("Directive " ^ ": " ^ (string_of_directive_argument arg))]
 
