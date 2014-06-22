@@ -54,12 +54,7 @@ let rec coq_type_of_caml_type_ident : Longident.t -> Coqtree.type_ = function
         coq_type_of_caml_type_ident t2
     )
 
-let rec abstraction_builder x y =
-    match y with
-    | Coqtree.NullType -> coq_type_of_caml_type x
-    | _ -> Coqtree.Abstraction (coq_type_of_caml_type x, y)
-
-and coq_type_of_caml_type { Parsetree.ptyp_desc=desc; _ } : Coqtree.type_ =
+let rec coq_type_of_caml_type { Parsetree.ptyp_desc=desc; _ } : Coqtree.type_ =
     match desc with
     | Parsetree.Ptyp_any -> failwith "any not implemented."
     | Parsetree.Ptyp_var s -> Coqtree.SimpleType s
@@ -72,9 +67,6 @@ and coq_type_of_caml_type { Parsetree.ptyp_desc=desc; _ } : Coqtree.type_ =
             | (hd :: tl) -> List.fold_left (fun x y -> Coqtree.Abstraction (coq_type_of_caml_type y, x)) (coq_type_of_caml_type hd) tl
             | _ -> failwith "logic error"
     )
-    (*
-    | Parsetree.Ptyp_tuple l ->
-            List.fold_right abstraction_builder l Coqtree.NullType *)
     | Parsetree.Ptyp_constr (loc, _) -> coq_type_of_caml_type_ident loc.Asttypes.txt
     | Parsetree.Ptyp_object _ -> failwith "object not implemented."
     | Parsetree.Ptyp_class _ -> failwith "class not implemented."
