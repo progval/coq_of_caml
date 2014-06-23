@@ -17,7 +17,7 @@ let rec string_of_structure_item_list : Coqtree.structure_item list -> string = 
     | (hd :: tl) -> String.concat "\n" ((string_of_structure_item true hd) :: (List.map (string_of_structure_item false) tl)) ^ ".\n"
 
 and string_of_structure_item (prefix : bool) : Coqtree.structure_item -> string = function
-    | Coqtree.Definition -> failwith "definition not implemented."
+    | Coqtree.Definition _ -> failwith "definition not implemented."
     | Coqtree.Inductive (id, constructors) ->
             (String.concat "" [if prefix then "Inductive " else "with "; id; " : Type :=\n"; String.concat "\n" (List.map string_of_inductive_constructor constructors)])
     | Coqtree.Fixpoint -> failwith "fixpoint not implemented."

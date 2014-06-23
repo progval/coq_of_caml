@@ -15,7 +15,7 @@ type inductive_constructor =
 type structure = structure_item list
 
 and structure_item =
-    | Definition
+    | Definition of identifier * structure
     | Inductive of identifier * (inductive_constructor list)
     | Fixpoint
     | Comment of string

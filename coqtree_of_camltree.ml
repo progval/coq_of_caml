@@ -7,41 +7,42 @@ let string_of_directive_argument : Parsetree.directive_argument -> string = func
     | Parsetree.Pdir_ident x -> String.concat " " (Longident.flatten x)
     | Parsetree.Pdir_bool b -> string_of_bool b
 
-let coq_expression_of_caml_expression (pattern, {Parsetree.pexp_desc=expression; Parsetree.pexp_loc=loc}) : Coqtree.structure_item =
-    match (pattern, expression) with
-    | (_, Parsetree.Pexp_ident _) -> Coqtree.Comment "ident"
-    | (_, Parsetree.Pexp_constant _) -> failwith "constant not implemented."
-    | (_, Parsetree.Pexp_let _) -> failwith "let not implemented."
-    | (_, Parsetree.Pexp_function _) -> failwith "function not implemented."
-    | (_, Parsetree.Pexp_apply _) -> failwith "apply not implemented."
-    | (_, Parsetree.Pexp_match _) -> failwith "match not implemented."
-    | (_, Parsetree.Pexp_try _) -> failwith "try not implemented."
-    | (_, Parsetree.Pexp_tuple _) -> failwith "tuple not implemented."
-    | (_, Parsetree.Pexp_construct _) -> failwith "construct not implemented."
-    | (_, Parsetree.Pexp_variant _) -> failwith "variant not implemented."
-    | (_, Parsetree.Pexp_record _) -> failwith "record not implemented."
-    | (_, Parsetree.Pexp_field _) -> failwith "field not implemented."
-    | (_, Parsetree.Pexp_setfield _) -> failwith "setfield not implemented."
-    | (_, Parsetree.Pexp_array _) -> failwith "array not implemented."
-    | (_, Parsetree.Pexp_ifthenelse _) -> failwith "ifthenelse not implemented."
-    | (_, Parsetree.Pexp_sequence _) -> failwith "sequence not implemented."
-    | (_, Parsetree.Pexp_while _) -> failwith "while not implemented."
-    | (_, Parsetree.Pexp_for _) -> failwith "for not implemented."
-    | (_, Parsetree.Pexp_constraint _) -> failwith "constraint not implemented."
-    | (_, Parsetree.Pexp_when _) -> failwith "when not implemented."
-    | (_, Parsetree.Pexp_send _) -> failwith "send not implemented."
-    | (_, Parsetree.Pexp_new _) -> failwith "new not implemented."
-    | (_, Parsetree.Pexp_setinstvar _) -> failwith "setinstvar not implemented."
-    | (_, Parsetree.Pexp_override _) -> failwith "override not implemented."
-    | (_, Parsetree.Pexp_letmodule _) -> failwith "letmodule not implemented."
-    | (_, Parsetree.Pexp_assert _) -> failwith "assert not implemented."
-    | (_, Parsetree.Pexp_assertfalse)
-    | (_, Parsetree.Pexp_lazy _) -> failwith "assertfalse/lazy not implemented."
-    | (_, Parsetree.Pexp_poly _) -> failwith "poly not implemented."
-    | (_, Parsetree.Pexp_object _) -> failwith "object not implemented."
-    | (_, Parsetree.Pexp_newtype _) -> failwith "newtype not implemented."
-    | (_, Parsetree.Pexp_pack _) -> failwith "pack not implemented."
-    | (_, Parsetree.Pexp_open _) -> failwith "open not implemented."
+let rec coq_expression_of_caml_expression (pattern, {Parsetree.pexp_desc=expression; Parsetree.pexp_loc=loc}) : Coqtree.structure_item =
+    let rec aux = function
+    | Parsetree.Pexp_ident _ -> failwith "ident not implemented."
+    | Parsetree.Pexp_constant _ -> failwith "constant not implemented."
+    | Parsetree.Pexp_let _ -> failwith "let not implemented."
+    | Parsetree.Pexp_function (label, expr, l) -> Coqtree.Definition ("foo", List.map coq_expression_of_caml_expression l)
+    | Parsetree.Pexp_apply _ -> failwith "apply not implemented."
+    | Parsetree.Pexp_match _ -> failwith "match not implemented."
+    | Parsetree.Pexp_try _ -> failwith "try not implemented."
+    | Parsetree.Pexp_tuple _ -> failwith "tuple not implemented."
+    | Parsetree.Pexp_construct _ -> failwith "construct not implemented."
+    | Parsetree.Pexp_variant _ -> failwith "variant not implemented."
+    | Parsetree.Pexp_record _ -> failwith "record not implemented."
+    | Parsetree.Pexp_field _ -> failwith "field not implemented."
+    | Parsetree.Pexp_setfield _ -> failwith "setfield not implemented."
+    | Parsetree.Pexp_array _ -> failwith "array not implemented."
+    | Parsetree.Pexp_ifthenelse _ -> failwith "ifthenelse not implemented."
+    | Parsetree.Pexp_sequence _ -> failwith "sequence not implemented."
+    | Parsetree.Pexp_while _ -> failwith "while not implemented."
+    | Parsetree.Pexp_for _ -> failwith "for not implemented."
+    | Parsetree.Pexp_constraint _ -> failwith "constraint not implemented."
+    | Parsetree.Pexp_when _ -> failwith "when not implemented."
+    | Parsetree.Pexp_send _ -> failwith "send not implemented."
+    | Parsetree.Pexp_new _ -> failwith "new not implemented."
+    | Parsetree.Pexp_setinstvar _ -> failwith "setinstvar not implemented."
+    | Parsetree.Pexp_override _ -> failwith "override not implemented."
+    | Parsetree.Pexp_letmodule _ -> failwith "letmodule not implemented."
+    | Parsetree.Pexp_assert _ -> failwith "assert not implemented."
+    | Parsetree.Pexp_assertfalse
+    | Parsetree.Pexp_lazy _ -> failwith "assertfalse/lazy not implemented."
+    | Parsetree.Pexp_poly _ -> failwith "poly not implemented."
+    | Parsetree.Pexp_object _ -> failwith "object not implemented."
+    | Parsetree.Pexp_newtype _ -> failwith "newtype not implemented."
+    | Parsetree.Pexp_pack _ -> failwith "pack not implemented."
+    | Parsetree.Pexp_open _ -> failwith "open not implemented."
+    in aux expression
 
 let rec coq_type_of_caml_type_ident : Longident.t -> Coqtree.type_ = function
     | Longident.Lident s -> Coqtree.SimpleType s

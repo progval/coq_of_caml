@@ -22,7 +22,11 @@ for (caml, coq) in zip(glob.glob(os.path.join(TEST_DIR, '*.ml')),
     sys.stdout.write('%s... ' % caml)
     sys.stdout.flush()
     with open(caml) as caml_fd:
-        output = subprocess.check_output([EXE], stdin=caml_fd)
+        try:
+            output = subprocess.check_output([EXE], stdin=caml_fd)
+        except subprocess.CalledProcessError:
+            fails.append(caml)
+            continue
     with tempfile.TemporaryFile() as coq_of_caml_fd:
         coq_of_caml_fd.write(output)
         coq_of_caml_fd.seek(0)
