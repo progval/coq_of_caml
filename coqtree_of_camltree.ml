@@ -8,11 +8,11 @@ let string_of_directive_argument : Parsetree.directive_argument -> string = func
     | Parsetree.Pdir_bool b -> string_of_bool b
 
 let rec coq_expression_of_caml_expression (pattern, {Parsetree.pexp_desc=expression; Parsetree.pexp_loc=loc}) : Coqtree.structure_item =
-    let rec aux = function
-    | Parsetree.Pexp_ident _ -> failwith "ident not implemented."
+    match expression with
+    | Parsetree.Pexp_ident loc -> Coqtree.StructureType (coq_type_of_caml_type_ident loc.Asttypes.txt)
     | Parsetree.Pexp_constant _ -> failwith "constant not implemented."
     | Parsetree.Pexp_let _ -> failwith "let not implemented."
-    | Parsetree.Pexp_function (label, expr, l) -> Coqtree.Definition ("foo", List.map coq_expression_of_caml_expression l)
+    | Parsetree.Pexp_function (label, expr, l) -> Coqtree.Definition ("toto", Coqtree.Types (List.map (fun x -> match (coq_expression_of_caml_expression x) with Coqtree.StructureType t -> t | _ -> failwith "logic error.") l))
     | Parsetree.Pexp_apply _ -> failwith "apply not implemented."
     | Parsetree.Pexp_match _ -> failwith "match not implemented."
     | Parsetree.Pexp_try _ -> failwith "try not implemented."
@@ -42,9 +42,8 @@ let rec coq_expression_of_caml_expression (pattern, {Parsetree.pexp_desc=express
     | Parsetree.Pexp_newtype _ -> failwith "newtype not implemented."
     | Parsetree.Pexp_pack _ -> failwith "pack not implemented."
     | Parsetree.Pexp_open _ -> failwith "open not implemented."
-    in aux expression
 
-let rec coq_type_of_caml_type_ident : Longident.t -> Coqtree.type_ = function
+and coq_type_of_caml_type_ident : Longident.t -> Coqtree.type_ = function
     | Longident.Lident s -> Coqtree.SimpleType s
     | Longident.Ldot (t, s1) -> (match (coq_type_of_caml_type_ident t) with
         | Coqtree.SimpleType s2 -> Coqtree.SimpleType (String.concat "." [s2; s1])

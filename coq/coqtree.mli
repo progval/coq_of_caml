@@ -15,11 +15,12 @@ type inductive_constructor =
 type structure = structure_item list
 
 and structure_item =
-    | Definition of identifier * structure
+    | Definition of identifier * types
     | Inductive of identifier * (inductive_constructor list)
     | Fixpoint
     | Comment of string
     | SubStructure of structure
+    | StructureType of type_
 
 type toplevel_phrase =
     | Structure of structure
